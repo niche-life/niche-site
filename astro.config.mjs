@@ -47,7 +47,7 @@ export default defineConfig({
             { label: "ニッチェ・ライフとは", slug: "about" },
             { label: "運営体制", slug: "editors" },
             {
-              label: "新着ニュース",
+              label: "お知らせ",
               link: "news",
             },
           ],

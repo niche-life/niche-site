@@ -1,0 +1,21 @@
+---
+import "@astrojs/starlight/style/markdown.css";
+
+const { starlightRoute } = Astro.locals;
+const isNewsDetail =
+  starlightRoute.entry.slug.startsWith("news/") &&
+  starlightRoute.entry.slug !== "news";
+---
+
+<div class="sl-markdown-content">
+  <slot />
+  {
+    isNewsDetail && (
+      <p class="mt-12">
+        <a href="/news/" class="text-sky-700 hover:underline">
+          ← お知らせ一覧に戻る
+        </a>
+      </p>
+    )
+  }
+</div>

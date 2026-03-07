@@ -7,14 +7,24 @@ const posts = (await getCollection("news")).sort(
 );
 ---
 
-<StarlightPage frontmatter={{ title: "新着ニュース" }}>
+<StarlightPage frontmatter={{ title: "お知らせ" }}>
 
   <ul>
     {
       posts.map((post) => (
         <li>
           <!-- sv-SEロケールはYYYY-MM-DD形式 -->
-          {post.data.pubDate.toLocaleDateString("sv-SE")} : {post.data.title}
+          {post.data.pubDate.toLocaleDateString("sv-SE")} :{" "}
+          {(post.body ?? "").trim().length > 0 ? (
+            <a
+              href={`/news/${post.id.replace(/^news\//, "")}/`}
+              class="text-green-600 hover:text-green-800 hover:underline"
+            >
+              {post.data.title}
+            </a>
+          ) : (
+            post.data.title
+          )}
         </li>
       ))
     }
