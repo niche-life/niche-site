@@ -1,6 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import { getCoverImage } from "../utils/data.ts";
+import { formatJapaneseDate } from "../utils/date.ts";
 import type { Article } from "../utils/data.ts";
 
 interface Props {
@@ -41,8 +42,8 @@ const getFullPdfUrl = (url: string | undefined) => {
 };
 ---
 
-<div class="mb-10">
-  <div>
+<div class="mb-8 sm:mb-10">
+  <div class="flex items-start gap-4 sm:gap-5">
     {
       coverImageSrc ? (
         <Image
@@ -50,50 +51,49 @@ const getFullPdfUrl = (url: string | undefined) => {
           alt={`表紙 - ${title}`}
           width="180"
           height="254"
-          class="border border-gray-300"
+          class="shrink-0 rounded-sm border border-slate-300"
         />
       ) : (
-        <div class="w-45 h-63.5 bg-gray-500 flex items-center justify-center text-gray-100 rounded-lg">
+        <div class="h-63.5 w-45 shrink-0 rounded-sm bg-slate-500 text-slate-100 flex items-center justify-center">
           <span>No Image</span>
         </div>
       )
     }
-  </div>
-  <div>
-    <p>公開日：{publishedDate}</p>
+    <div class="min-w-0">
+      <p class="m-0 text-sm leading-6 text-slate-600">第{volumeNo}号</p>
+      <p class="m-0 text-sm leading-6 text-slate-600">
+        公開日: {formatJapaneseDate(publishedDate)}
+      </p>
+      <p class="m-0 text-sm leading-6 text-slate-600">記事数: {filteredArticles.length}件</p>
+    </div>
   </div>
 </div>
 
 <div>
-  <ul class="list-none p-0 m-0">
+  <ul class="m-0 list-none divide-y divide-slate-200/70 p-0">
     {
       filteredArticles.map((article) => (
-        <li>
-            <div class="flex flex-col mb-8">
-              <a
-                href={getArticleUrl(article.url)}
-                class="text-(--sl-color-accent) no-underline font-semibold text-base leading-tight inline-block self-start hover:text-(--sl-color-accent-high) hover:underline"
-                target="_blank"
-                rel="noopener"
-              >
-                {article.title}
-              </a>
-              {article.author && (
-                <div class="text-gray-400 text-[0.9rem] m-0">
-                  {article.author}
-                </div>
-              )}
-              {isDOI(article.url) && (
-                <div class="flex flex-nowrap items-center gap-2 m-0">
-                  <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded whitespace-nowrap">
-                    DOI
-                  </span>
-                  <span class="text-xs text-gray-400 font-sans break-all">
-                    {article.url}
-                  </span>
-                </div>
-              )}
-            </div>
+        <li class="py-3 sm:py-4">
+          <a
+            href={getArticleUrl(article.url)}
+            class="inline-block text-(--sl-color-accent) no-underline text-base leading-7 font-semibold hover:text-(--sl-color-accent-high) hover:underline underline-offset-2"
+            target="_blank"
+            rel="noopener"
+          >
+            {article.title}
+          </a>
+          {(article.author || article.page) && (
+            <p class="m-0 text-sm leading-6 text-slate-600">
+              {article.author}
+              {article.author && article.page ? " / " : ""}
+              {article.page ? `p.${article.page}` : ""}
+            </p>
+          )}
+          {isDOI(article.url) && (
+            <p class="m-0 text-xs leading-5 text-slate-500 break-all">
+              DOI: {article.url}
+            </p>
+          )}
         </li>
       ))
     }
@@ -101,16 +101,16 @@ const getFullPdfUrl = (url: string | undefined) => {
 </div>
 
 {fullPdfUrl && (
-  <div class="mt-10 pt-10">
+  <div class="mt-8 pt-6">
     <a
       href={getFullPdfUrl(fullPdfUrl)}
-      class="text-(--sl-color-accent) no-underline font-semibold text-base leading-tight inline-block hover:text-(--sl-color-accent-high) hover:underline"
+      class="inline-block text-(--sl-color-accent) no-underline text-base leading-7 font-semibold hover:text-(--sl-color-accent-high) hover:underline underline-offset-2"
       target="_blank"
       rel="noopener"
     >
       フルPDF（全記事まとめ）
     </a>
-    <p class="text-gray-400 text-sm mt-1 m-0">
+    <p class="m-0 text-sm leading-6 text-slate-600">
       大容量ファイルのため、ダウンロード時の通信量にご注意ください。Wi-Fi接続を推奨します。
     </p>
   </div>
