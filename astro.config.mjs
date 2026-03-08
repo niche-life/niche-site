@@ -27,7 +27,7 @@ export default defineConfig({
       },
       tableOfContents: false,
       sidebar: [
-        { label: "HOME", link: "/" },
+        // { label: "HOME", link: "/" },
         {
           label: "記事を読む",
           items: [
