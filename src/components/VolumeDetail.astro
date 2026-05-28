@@ -1,6 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import { getCoverImage } from "../utils/data.ts";
+import { getCoverImage, getArticleImage } from "../utils/data.ts";
 import { formatJapaneseDate } from "../utils/date.ts";
 import type { Article } from "../utils/data.ts";
 
@@ -16,25 +16,27 @@ interface Props {
 
 const { volumeNo, title, publishedDate, image, url, fullPdfUrl, articles } = Astro.props;
 
-// 新しいデータ取得ユーティリティで表紙画像を取得
 const coverImageSrc = await getCoverImage(image);
 
-// 分離データ構造では表紙記事は既に除外済み
 const filteredArticles = articles;
 
-// URLを適切に生成する関数
+// 各記事の画像を事前に取得
+const articleImages = await Promise.all(
+  filteredArticles.map((article) =>
+    article.image ? getArticleImage(article.image) : Promise.resolve(undefined)
+  )
+);
+
 const getArticleUrl = (url: string | undefined) => {
   if (!url) return "#";
   if (url.startsWith("https://")) return url;
   return `https://media.niche-life.com/series/${url}`;
 };
 
-// DOIリンクかどうかを判定する関数
 const isDOI = (url: string | undefined) => {
   return url?.startsWith("https://doi.org/") ?? false;
 };
 
-// フルPDF URLを適切に生成する関数
 const getFullPdfUrl = (url: string | undefined) => {
   if (!url) return "#";
   if (url.startsWith("https://")) return url;
@@ -69,36 +71,59 @@ const getFullPdfUrl = (url: string | undefined) => {
   </div>
 </div>
 
-<div>
-  <ul class="m-0 list-none divide-y divide-slate-200/70 p-0">
-    {
-      filteredArticles.map((article) => (
-        <li class="py-3 sm:py-4">
+<ul class="m-0 list-none p-0 space-y-3">
+  {
+    filteredArticles.map((article, i) => {
+      const articleImg = articleImages[i];
+      const href = getArticleUrl(article.url);
+      return (
+        <li>
           <a
-            href={getArticleUrl(article.url)}
-            class="inline-block text-(--sl-color-accent) no-underline text-base leading-7 font-semibold hover:text-(--sl-color-accent-high) hover:underline underline-offset-2"
+            href={href}
             target="_blank"
             rel="noopener"
+            class="block bg-white rounded-2xl border border-slate-200 p-5 no-underline hover:shadow-md hover:border-slate-300 transition-all duration-200"
           >
-            {article.title}
+            {/* タイトル行：タイトル左・ページ番号右 */}
+            <div class="flex justify-between items-start gap-3 mb-3">
+              <p class="m-0 font-bold text-base leading-snug text-slate-800">
+                {article.title}
+              </p>
+              {article.page && (
+                <span class="shrink-0 text-sm font-medium text-slate-500">
+                  p.{article.page}
+                </span>
+              )}
+            </div>
+
+            {/* 本文行：画像（任意）＋メタ情報 */}
+            <div class="flex items-start gap-4">
+              {articleImg && (
+                <Image
+                  src={articleImg}
+                  alt=""
+                  width="176"
+                  height="120"
+                  class="shrink-0 object-cover w-44 h-30"
+                />
+              )}
+              <div class="min-w-0 space-y-0.5">
+                {article.author && (
+                  <p class="m-0 text-sm text-slate-600">{article.author}</p>
+                )}
+                {isDOI(article.url) && (
+                  <p class="m-0 text-xs text-slate-400 break-all">
+                    DOI: {article.url}
+                  </p>
+                )}
+              </div>
+            </div>
           </a>
-          {(article.author || article.page) && (
-            <p class="m-0 text-sm leading-6 text-slate-600">
-              {article.author}
-              {article.author && article.page ? " / " : ""}
-              {article.page ? `p.${article.page}` : ""}
-            </p>
-          )}
-          {isDOI(article.url) && (
-            <p class="m-0 text-xs leading-5 text-slate-500 break-all">
-              DOI: {article.url}
-            </p>
-          )}
         </li>
-      ))
-    }
-  </ul>
-</div>
+      );
+    })
+  }
+</ul>
 
 {fullPdfUrl && (
   <div class="mt-8 pt-6">

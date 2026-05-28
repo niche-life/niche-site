@@ -26,6 +26,7 @@ export interface Article {
   author: string;
   page: string;
   url: string;
+  image?: string; // 記事画像ファイル名（src/assets/articles/ に配置）
 }
 
 /**
@@ -163,6 +164,30 @@ export async function getEditorImage(
     return undefined;
   } catch (error) {
     console.error(`編集者画像の読み込みに失敗: ${filename}`, error);
+    return undefined;
+  }
+}
+
+/**
+ * 記事画像を取得（src/assets/articles/ に配置した画像ファイル名を渡す）
+ * @param imageFilename - 画像ファイル名
+ * @returns {Promise<ImageMetadata | undefined>}
+ */
+export async function getArticleImage(
+  imageFilename: string,
+): Promise<ImageMetadata | undefined> {
+  try {
+    const images = import.meta.glob<{ default: ImageMetadata }>(
+      "/src/assets/articles/*.{jpeg,jpg,png,gif}",
+    );
+    const imagePath = `/src/assets/articles/${imageFilename}`;
+    const resolvedImage = images[imagePath];
+    if (resolvedImage) {
+      const imageModule = await resolvedImage();
+      return imageModule.default;
+    }
+    return undefined;
+  } catch {
     return undefined;
   }
 }
